@@ -4,7 +4,7 @@ echo "=== srpi-loop ==="
 
 # 4개 wip 파일 존재 확인
 for wip in quest-wip.md research-wip.md plan-wip.md impl-wip.md; do
-  check_file "$LOGS_DIR/$wip" || true
+  check_file "$LOGS_DIR/$wip"
 done
 
 # 각 스킬 validate 실행

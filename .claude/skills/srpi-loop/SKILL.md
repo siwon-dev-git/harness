@@ -13,4 +13,7 @@ disable-model-invocation: true
 missing인 단계부터 순서대로 실행: evaluate → research → plan → implement.
 각 단계는 해당 스킬의 SKILL.md를 읽고 절차를 수행.
 단계 완료 후 validate.sh 통과해야 다음으로 진행.
-종료 후 `logs/*.bak.md` 삭제.
+
+단계 간 `/compact` 권장 — 컨텍스트 누적 방지.
+
+4단계 모두 완료 후 `bash .claude/skills/srpi-loop/cleanup.sh` 실행.
