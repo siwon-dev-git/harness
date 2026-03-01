@@ -52,6 +52,12 @@
   - Fix: 다음 루프에서 lib.sh 함수를 validate.sh에 실제 배치. check_section_order로 wip 섹션 순서 검증, check_no_pattern으로 금지 패턴 체크
   - Prevent: plan 단계에서 "함수 추가" 태스크와 "함수 배치" 태스크를 명시적으로 분리. 도구 생성 ≠ 활용
 
+- **tool-without-deployment** [loop, validation]
+  - Detect: Loop 3에서 lib.sh 함수 추가했으나 validate.sh 배치 누락 → 테스트 delta=0
+  - Root Cause: "함수 추가" 태스크만 만들고 "함수 배치" 태스크를 별도로 만들지 않음
+  - Fix: Loop 4에서 check_section_order를 evaluate/validate.sh에, check_no_pattern을 verify/validate.sh에 실배치
+  - Prevent: plan 단계에서 도구 생성과 도구 배치를 별도 태스크로 분리. "만들기 ≠ 쓰기"
+
 ## Context
 
 - **context-exhaustion** [context, loop]

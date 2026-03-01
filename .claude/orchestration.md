@@ -26,4 +26,12 @@ constitution.md 수정 시도 → 무조건 REJECT.
 2. Hard Constraints 위반 여부
 3. 보호 파일 목록과의 충돌 여부
 
-Risk High 이상 → 사용자 승인 필요.
+## Risk 분류
+
+| Risk | 기준 | 대상 파일 | 조치 |
+|------|------|----------|------|
+| Risk High | 불변 원칙 위반 가능 | `constitution.md` | REJECT (수정 불가) |
+| Risk Medium | 보호 파일 구조 변경 | `orchestration.md`, `conventions.md`, `SKILL.md` | Mutation Safety 3단계 검증 |
+| Risk Low | 보호 파일 내용 추가 | `adr.md`, `fmea.md`, `scoreboard.md` | append-only 준수 확인 |
+
+Risk Medium 이상 → 사용자 승인 필요.

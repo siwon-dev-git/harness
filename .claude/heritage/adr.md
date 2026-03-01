@@ -1,34 +1,49 @@
 # Decisions Registry
 
-> SRPI 루프에서 축적된 설계 결정. 1줄 형식: 이름 [태그] → 결정.
+> SRPI 루프에서 축적된 설계 결정. 이름 [태그]: 결정 + Background.
 > 태그: `governance`, `validation`, `loop`, `heritage`, `context`, `performance`
 
 ## Governance
 
 - **constitution-trust-anchor** [governance]: 불변 원칙 파일(constitution.md) 도입. 에이전트 수정 불가, 사용자만 변경
+  - Background: 에이전트가 자기 규칙을 자기가 수정하면 자기개선 루프의 신뢰 기반이 무너짐. 불변 앵커 필요
 - **protected-file-list** [governance]: 보호 파일 목록 명시. 수정 시 mutation safety 3단계 검증 필수
+  - Background: constitution만 보호하면 heritage 파일이 무방비. 계층별 보호 수준 필요
 - **babel-paradox-defense** [governance]: Self-scoring 편향을 Hard Constraint로 등록. 평가 시 경고 의무
+  - Background: Loop 1에서 자기 코드 자기 평가 시 점수 부풀림 관찰. 정량적 근거 요구로 방어
 
 ## Validation
 
 - **sequential-gate-enforcement** [validation, loop]: 이전 단계 validate PASS 없이 다음 단계 진입 불가
+  - Background: 불완전한 중간 산출물 위에 다음 단계를 쌓으면 오류 전파. validate 게이트로 차단
 - **validate-retry-limit** [validation]: 단계당 최대 3회 재시도. 초과 시 BLOCKED
+  - Background: 무한 재시도는 컨텍스트 소진. 3회 제한으로 실패를 빠르게 인정하고 FMEA에 기록
 - **evidence-based-scoring** [validation]: 모든 점수 판정에 file:line 근거 필수. 근거 없는 점수 무효
+  - Background: "양호함" 같은 정성 판단은 재현 불가. 코드 위치 기반 근거만 허용
 
 ## Loop
 
 - **wip-file-state-detection** [loop]: wip 파일 존재 여부로 재개 지점 판단. missing부터 실행
+  - Background: 컨텍스트 소진 후 재시작 시 어디부터 이어할지 판단 근거 필요. 파일 존재가 가장 단순
 - **cleanup-after-completion** [loop]: 5단계 모두 완료 후 cleanup.sh로 wip/bak 파일 제거
+  - Background: 이전 루프 wip 잔존 시 다음 루프 재개 지점 오판 (FMEA wip-residual-confusion)
 - **no-commit-policy** [loop]: implement 단계에서 커밋 금지. 사용자 직접 확인 후 커밋
+  - Background: 자동 커밋은 되돌리기 어려운 부작용. 사용자 승인 게이트 유지
 
 ## Heritage
 
 - **heritage-accumulation** [heritage]: ADR(결정) + FMEA(실패 패턴)로 경험 축적. 루프마다 갱신
+  - Background: 루프 간 학습 없이 같은 실수 반복. heritage로 루프 간 기억 영속화
 - **detect-fix-prevent** [heritage]: FMEA 항목은 탐지→수정→예방 3단계 구조
+  - Background: 단순 "실패 기록"은 재발 방지 불가. 3단계로 구조화해야 actionable
 
 ## Verification
 
 - **vf-layer** [loop, heritage]: VF 단계 도입. 점수 delta + heritage 자동 업데이트로 피드백 루프 폐합
+  - Background: implement 후 "개선됐다고 가정"하면 Babel Paradox. 재평가로 실제 delta 측정
 - **scoreboard-tracking** [heritage]: scoreboard.md로 루프별 점수 영속 추적. append-only
+  - Background: 점수 추이 없이는 정체/하락 감지 불가. 시계열 데이터 필수
 - **archive-before-cleanup** [loop]: cleanup 전 logs/archive/loop-NNN/에 wip 파일 보존. 기억 소실 방지
+  - Background: cleanup이 wip를 삭제하므로 중간 산출물 소실. archive로 감사 추적 가능
 - **difficulty-governance** [loop, governance]: 난이도 점수 + 최소 쿼터로 easy-pick 편향 방어
+  - Background: Loop 1에서 L:9 M:1 H:0 (FLAG). 쉬운 태스크만 골라 점수 부풀림. 난이도 하한 필요
