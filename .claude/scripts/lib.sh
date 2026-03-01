@@ -22,6 +22,29 @@ check_count() {
   [[ "$c" -ge "$3" ]] && ok "$4 ($c)" || err "$4 -- need $3, found $c"
 }
 
+check_no_pattern() {
+  grep -qE "$2" "$1" 2>/dev/null && err "$3 -- pattern should NOT exist" || ok "$3"
+}
+
+check_section_order() {
+  local file="$1"; shift
+  local prev_line=0
+  for section in "$@"; do
+    local line
+    line=$(grep -nE "$section" "$file" 2>/dev/null | head -1 | cut -d: -f1) || true
+    if [[ -z "$line" ]]; then
+      err "section '$section' not found in $file"
+      return
+    fi
+    if [[ "$line" -le "$prev_line" ]]; then
+      err "section '$section' (L$line) out of order (expected after L$prev_line)"
+      return
+    fi
+    prev_line="$line"
+  done
+  ok "section order correct"
+}
+
 result() {
   echo ""
   if [[ ${#ERRORS[@]} -gt 0 ]]; then

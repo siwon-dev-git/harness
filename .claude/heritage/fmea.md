@@ -36,13 +36,21 @@
 
 - **no-impact-performance** [scoring, loop]
   - Detect: 성능 기준 delta=0 — 2루프 연속 정체 (Loop 1, Loop 2)
+  - Root Cause: plan 단계에서 보안/코드품질 우선 배치로 성능 태스크 경쟁에서 밀림. 성능 이슈가 "동작에 지장 없음"으로 분류되어 우선순위 하락
   - Fix: 다음 루프에서 성능 태스크 의무 배치 (key={i}, inline style 객체, lib 빌드 최적화)
   - Prevent: plan 단계에서 5기준 커버리지 확인. 2루프 연속 delta=0 영역 최우선 배정
 
 - **no-impact-architecture** [scoring, loop]
   - Detect: 아키텍처 기준 delta=0 — Loop 2에서 관련 태스크 0건
+  - Root Cause: 아키텍처 이슈(@theme inline, peerDependencies)가 "정책 결정" 성격이라 코드 수정 태스크로 변환하기 어려움
   - Fix: 다음 루프에서 아키텍처 태스크 배치 (@theme inline L1 참조, peerDependencies 정책)
   - Prevent: plan 단계에서 delta=0 영역 태스크 의무 배정
+
+- **no-impact-test** [scoring, loop]
+  - Detect: 테스트 기준 delta=0 — Loop 3에서 check_no_pattern/check_section_order 추가했으나 validate.sh에서 호출 0건
+  - Root Cause: 구현 단계에서 "함수 추가"와 "함수 배치"를 별도 태스크로 분리하지 않아, 도구만 만들고 적용은 누락
+  - Fix: 다음 루프에서 lib.sh 함수를 validate.sh에 실제 배치. check_section_order로 wip 섹션 순서 검증, check_no_pattern으로 금지 패턴 체크
+  - Prevent: plan 단계에서 "함수 추가" 태스크와 "함수 배치" 태스크를 명시적으로 분리. 도구 생성 ≠ 활용
 
 ## Context
 
