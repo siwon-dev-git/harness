@@ -22,6 +22,18 @@
   - Fix: cleanup.sh 실행으로 잔여 파일 제거
   - Prevent: 루프 시작 시 이전 wip 파일 상태 확인 + 사용자에게 안내
 
+## Loop Strategy
+
+- **no-impact-security** [scoring, loop]
+  - Detect: 보안 기준 delta=0 — 관련 태스크 0건으로 점수 정체
+  - Fix: 다음 루프에서 보안 태스크 우선 배치 (href sanitization, script injection, dependabot)
+  - Prevent: evaluate 후 plan 단계에서 5기준 커버리지 확인. delta=0 영역 태스크 의무 배정
+
+- **easy-pick-bias** [loop, governance]
+  - Detect: 난이도 점수 1.1 (FLAG). L:9 M:1 H:0 — 쉬운 태스크만 선택
+  - Fix: 다음 루프에서 M/H 쿼터 확보 (최소 1개 M 또는 H 의무)
+  - Prevent: plan 단계에서 난이도 분포 사전 검증. < 1.3 시 태스크 교체
+
 ## Context
 
 - **context-exhaustion** [context, loop]

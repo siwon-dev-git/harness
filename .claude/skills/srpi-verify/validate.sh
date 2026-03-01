@@ -10,8 +10,8 @@ check_file "$F"
 # 루프 번호 패턴
 check_pattern "$F" "^# Verification — Loop [0-9]+" "loop number in title"
 
-# 점수 비교 테이블 (Pre/Post/Delta 열이 있는 N/10 패턴 10개+)
-check_count "$F" "[0-9]+/10" 10 "score entries (N/10) >= 10"
+# 점수 비교 테이블 (5기준 × Pre/Post, grep -c는 라인 수 기준)
+check_count "$F" "[0-9]+/10" 5 "score rows (N/10) >= 5"
 
 # file:line 근거 3개+
 check_count "$F" "[a-zA-Z0-9_./-]+:[0-9]+" 3 "file:line evidence >= 3"
