@@ -34,6 +34,16 @@
   - Fix: 다음 루프에서 M/H 쿼터 확보 (최소 1개 M 또는 H 의무)
   - Prevent: plan 단계에서 난이도 분포 사전 검증. < 1.3 시 태스크 교체
 
+- **no-impact-performance** [scoring, loop]
+  - Detect: 성능 기준 delta=0 — 2루프 연속 정체 (Loop 1, Loop 2)
+  - Fix: 다음 루프에서 성능 태스크 의무 배치 (key={i}, inline style 객체, lib 빌드 최적화)
+  - Prevent: plan 단계에서 5기준 커버리지 확인. 2루프 연속 delta=0 영역 최우선 배정
+
+- **no-impact-architecture** [scoring, loop]
+  - Detect: 아키텍처 기준 delta=0 — Loop 2에서 관련 태스크 0건
+  - Fix: 다음 루프에서 아키텍처 태스크 배치 (@theme inline L1 참조, peerDependencies 정책)
+  - Prevent: plan 단계에서 delta=0 영역 태스크 의무 배정
+
 ## Context
 
 - **context-exhaustion** [context, loop]
