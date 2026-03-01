@@ -57,6 +57,13 @@
 - **cleanup-precondition** [performance, validation]: cleanup.sh에 5개 wip 사전 검증 추가. 불완전 상태 방어
   - Background: Loop 5에서 아카이브 무결성 WARNING 추가했으나 삭제는 진행됨. 사전 중단이 더 안전
 
+- **single-pass-optimization** [performance]: 다중 grep → awk 단일 패스 전환. 파일 스캔 횟수 O(N×M) → O(1)
+  - Background: parse-scores.sh가 5기준×2grep=10회 파일 스캔. awk로 1회 스캔 후 메모리 내 검색으로 전환. check_range도 이중 grep → bash 파라미터 확장으로 서브프로세스 1개 제거
+- **dynamic-column-index** [performance, validation]: scoreboard awk $9 하드코딩 → 헤더 "평균" 컬럼 동적 추출
+  - Background: 컬럼 인덱스 리터럴은 스키마 변경 시 무조건 파괴. 헤더 파싱으로 컬럼명 기반 참조 도입. 1회 추가 비용으로 장기 유지보수 안전성 확보
+- **unified-test-runner** [performance]: run-tests.sh로 test-lib.sh + test-validators.sh 통합 실행 진입점 제공
+  - Background: 2개 테스트 스크립트 개별 실행은 전체 결과 확인에 2번 명령 필요. 통합 스크립트로 1번 실행. 개별 스크립트는 유지하여 디버깅 편의 보존
+
 ## Testing
 
 - **meta-testing** [validation, loop]: validator 자체를 테스트하는 test-validators.sh 도입. 의도적 불량 입력으로 FAIL 확인

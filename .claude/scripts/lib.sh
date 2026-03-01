@@ -53,18 +53,20 @@ check_range() {
   # Usage: check_range <file> <grep_pattern> <min> <max> <label>
   # Extracts all numbers matching pattern and verifies each is within [min, max]
   local file="$1" pattern="$2" min="$3" max="$4" label="$5"
-  local nums
-  nums=$(grep -oE "$pattern" "$file" 2>/dev/null | grep -oE '[0-9]+') || true
-  if [[ -z "$nums" ]]; then
+  local matches
+  matches=$(grep -oE "$pattern" "$file" 2>/dev/null) || true
+  if [[ -z "$matches" ]]; then
     err "$label -- no numbers found"
     return
   fi
   local out_of_range=0
-  while IFS= read -r n; do
+  while IFS= read -r m; do
+    local n="${m//[!0-9]/}"
+    [[ -z "$n" ]] && continue
     if [[ "$n" -lt "$min" || "$n" -gt "$max" ]]; then
       out_of_range=$((out_of_range + 1))
     fi
-  done <<< "$nums"
+  done <<< "$matches"
   if [[ "$out_of_range" -gt 0 ]]; then
     err "$label -- $out_of_range values outside [$min, $max]"
   else
@@ -113,10 +115,17 @@ check_scoreboard_delta() {
     ok "$label (< 2 rows, skip)"
     return
   fi
-  # Extract avg column (8th pipe-delimited field) from last two data rows
+  # 헤더에서 "평균" 컬럼 인덱스 동적 추출 (하드코딩 $9 제거)
+  local avg_col
+  avg_col=$(head -5 "$file" | grep -E '^\|.*평균' | awk -F'|' '{for(i=1;i<=NF;i++) if($i~/평균/) print i}') || true
+  if [[ -z "$avg_col" ]]; then
+    ok "$label (avg column not found, skip)"
+    return
+  fi
+  # 동적 컬럼 인덱스로 평균값 추출
   local prev_avg latest_avg
-  prev_avg=$(echo "$rows" | tail -2 | head -1 | awk -F'|' '{gsub(/ /,"",$9); print $9}') || true
-  latest_avg=$(echo "$rows" | tail -1 | awk -F'|' '{gsub(/ /,"",$9); print $9}') || true
+  prev_avg=$(echo "$rows" | tail -2 | head -1 | awk -F'|' -v col="$avg_col" '{gsub(/ /,"",$col); print $col}') || true
+  latest_avg=$(echo "$rows" | tail -1 | awk -F'|' -v col="$avg_col" '{gsub(/ /,"",$col); print $col}') || true
   if [[ -z "$prev_avg" || -z "$latest_avg" ]]; then
     ok "$label (avg parse skip)"
     return

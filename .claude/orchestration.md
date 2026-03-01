@@ -9,7 +9,7 @@
 | `/srpi-plan` | `logs/research-wip.md` | `logs/plan-wip.md` | `validate.sh` — T# 태스크 + 실행 순서 |
 | `/srpi-implement` | `logs/plan-wip.md` | `logs/impl-wip.md` | `validate.sh` — 태스크 상태 + 성공률 |
 | `/srpi-verify` | `logs/impl-wip.md` | `logs/verify-wip.md` | `validate.sh` — 점수 delta + 난이도 감사 + heritage 업데이트 |
-| `/srpi-loop` | 코드베이스 | 위 5단계 순차 | `validate.sh` + `cleanup.sh` |
+| `/srpi-loop` | 코드베이스 | 위 5단계 순차 | `validate.sh` (5단계) + `cleanup.sh` (wip 아카이브/제거) |
 
 ## Rules
 

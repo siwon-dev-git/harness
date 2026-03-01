@@ -89,22 +89,28 @@ assert_pass "boundary values 0 and 10" check_range "$TMP_DIR/boundary.md" "\| [0
 
 # --- check_scoreboard_delta ---
 echo "-- check_scoreboard_delta --"
+# Scoreboard header for column-name-based extraction
+SB_HEADER='| Loop | Date | 코드품질 | 아키텍처 | 테스트 | 보안 | 성능 | 평균 | Delta | Tasks | Success | DiffScore | Flag |'
+
 # Normal case: small delta
-cat > "$TMP_DIR/sb_ok.md" <<'SB'
+cat > "$TMP_DIR/sb_ok.md" <<SB
+$SB_HEADER
 | 0 | 2026-03-01 | 6 | 7 | 6 | 6 | 6 | 6.4 | - | - | - | - | - |
 | 1 | 2026-03-01 | 7 | 8 | 7 | 7 | 7 | 7.2 | +0.8 | 8 | 8/8 | 1.5 | PASS |
 SB
 assert_pass "small delta ok" check_scoreboard_delta "$TMP_DIR/sb_ok.md" 2 "test"
 
 # Big drop: avg drops by 3
-cat > "$TMP_DIR/sb_drop.md" <<'SB'
+cat > "$TMP_DIR/sb_drop.md" <<SB
+$SB_HEADER
 | 0 | 2026-03-01 | 8 | 8 | 8 | 8 | 8 | 8.0 | - | - | - | - | - |
 | 1 | 2026-03-01 | 5 | 5 | 5 | 5 | 5 | 5.0 | -3.0 | 8 | 8/8 | 1.5 | PASS |
 SB
 assert_fail "big drop detected" check_scoreboard_delta "$TMP_DIR/sb_drop.md" 2 "test"
 
 # Single row: skip (not enough data)
-cat > "$TMP_DIR/sb_one.md" <<'SB'
+cat > "$TMP_DIR/sb_one.md" <<SB
+$SB_HEADER
 | 0 | 2026-03-01 | 6 | 7 | 6 | 6 | 6 | 6.4 | - | - | - | - | - |
 SB
 assert_pass "single row skip" check_scoreboard_delta "$TMP_DIR/sb_one.md" 2 "test"

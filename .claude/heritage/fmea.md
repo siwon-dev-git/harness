@@ -82,6 +82,20 @@
   - Fix: Loop 9에서 verify/validate.sh에 early exit 패턴 적용. 5기준 검증도 SRPI_CRITERIA 기반으로 통일
   - Prevent: 새 validator 작성 시 기존 패턴 템플릿 참조. check_file 후 반드시 `|| { result; exit; }` 사용
 
+## Performance
+
+- **multi-scan-inefficiency** [performance, loop]
+  - Detect: 스크립트가 동일 파일을 N×M회 반복 스캔 (parse-scores.sh 5기준×2grep=10회, check_range 이중 grep)
+  - Root Cause: 기준별 for 루프 내 grep 호출은 직관적이지만, 기준 수 증가 시 선형 비용 증가. "동작함"이 "최적"으로 오인됨
+  - Fix: awk 단일 패스로 전체 파일 1회 스캔. 메모리 내 결과를 기준별로 검색 (parse-scores.sh). bash 파라미터 확장으로 grep 파이프 제거 (check_range)
+  - Prevent: 새 파일 파싱 스크립트 작성 시 "파일 스캔 횟수"를 성능 지표로 점검. for+grep → awk 단일 패스 우선 고려
+
+- **hardcoded-schema-index** [performance, validation]
+  - Detect: awk $9처럼 컬럼 인덱스 하드코딩. 스키마 변경 시 무조건 파괴
+  - Root Cause: 초기 구현에서 scoreboard 스키마가 고정이라 가정. append-only 정책이 "컬럼 변경 없음"을 보장하지 않음
+  - Fix: 헤더 행에서 컬럼명("평균")으로 인덱스 동적 추출
+  - Prevent: 테이블 데이터 파싱 시 항상 헤더 기반 인덱싱 사용. 숫자 리터럴 컬럼 참조 금지
+
 ## Context
 
 - **context-exhaustion** [context, loop]
