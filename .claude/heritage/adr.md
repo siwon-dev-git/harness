@@ -63,3 +63,7 @@
   - Background: validator가 PASS만 내면 "검증이 동작하는지" 확인 불가. negative test로 validator 신뢰도 확보. Loop 7에서 evaluate/research/plan 3개 validator × 3 시나리오 = 9개 테스트
 - **test-accompaniment** [validation]: 새 스크립트/함수 생성 시 동반 테스트 의무화. "만들기 = 테스트하기" 원칙
   - Background: Loop 6에서 parse-scores.sh, loop-status.sh를 테스트 없이 생성. Loop 7에서 FMEA untested-utility로 식별. 도구 생성과 테스트를 분리하면 테스트 누락 100%
+- **criteria-dedup** [performance, validation]: 5기준 배열을 lib.sh SRPI_CRITERIA로 공유 정의. 중복 제거
+  - Background: evaluate/validate.sh(5행 반복), parse-scores.sh(CRITERIA 배열), conventions.md에 기준명 3중 정의. 변경 시 동기화 실패 위험. 공유 정의로 단일 진실 원천(SSOT) 확보
+- **difficulty-invariant** [validation, governance]: plan/validate.sh에 L+M+H 합 == T# 태스크 수 불변식 검증 추가
+  - Background: 난이도 분포 데이터가 태스크 수와 불일치해도 감지 불가. check_difficulty_sum으로 불변식 강제

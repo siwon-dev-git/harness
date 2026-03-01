@@ -6,6 +6,9 @@ LOGS_DIR="logs"
 ERRORS=()
 _LIB_START=$(date +%s)
 
+# 5기준 공유 정의
+SRPI_CRITERIA=("코드 품질" "아키텍처" "테스트" "보안" "성능")
+
 err() { ERRORS+=("FAIL: $1"); }
 ok()  { echo "  OK: $1"; }
 
@@ -69,6 +72,35 @@ check_range() {
   fi
 }
 
+check_all_criteria() {
+  # Usage: check_all_criteria <file>
+  # Checks all 5 SRPI criteria have score pattern (N/10)
+  local file="$1"
+  for c in "${SRPI_CRITERIA[@]}"; do
+    check_pattern "$file" "## ${c}.*[0-9]+/10" "${c} 섹션+점수"
+  done
+}
+
+check_difficulty_sum() {
+  # Usage: check_difficulty_sum <file> <label>
+  # Verifies L+M+H count == T# task count
+  local file="$1" label="$2"
+  local task_count l_count m_count h_count
+  task_count=$(grep -cE '^## T[0-9]+' "$file" 2>/dev/null) || true
+  l_count=$(grep -oE 'L: ?[0-9]+개' "$file" | grep -oE '[0-9]+' | head -1) || true
+  m_count=$(grep -oE 'M: ?[0-9]+개' "$file" | grep -oE '[0-9]+' | head -1) || true
+  h_count=$(grep -oE 'H: ?[0-9]+개' "$file" | grep -oE '[0-9]+' | head -1) || true
+  l_count=${l_count:-0}; m_count=${m_count:-0}; h_count=${h_count:-0}
+  local sum=$((l_count + m_count + h_count))
+  if [[ "$task_count" -eq 0 ]]; then
+    err "$label -- no tasks found"
+  elif [[ "$sum" -ne "$task_count" ]]; then
+    err "$label -- L($l_count)+M($m_count)+H($h_count)=$sum != tasks($task_count)"
+  else
+    ok "$label (L:$l_count M:$m_count H:$h_count = $task_count tasks)"
+  fi
+}
+
 check_scoreboard_delta() {
   # Usage: check_scoreboard_delta <scoreboard_file> <max_drop> <label>
   # Checks that the latest scoreboard avg didn't drop more than max_drop vs previous
@@ -91,7 +123,7 @@ check_scoreboard_delta() {
   fi
   # Compare using bc for decimal
   local drop
-  drop=$(echo "$prev_avg - $latest_avg" | bc 2>/dev/null) || true
+  drop=$(echo "scale=1; $prev_avg - $latest_avg" | bc 2>/dev/null) || true
   local is_drop
   is_drop=$(echo "$drop > $max_drop" | bc 2>/dev/null) || true
   if [[ "$is_drop" == "1" ]]; then

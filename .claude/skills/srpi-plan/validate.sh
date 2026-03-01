@@ -12,4 +12,5 @@ check_pattern "$f" "실행 순서|순서" "실행 순서"
 check_pattern "$f" "난이도 분포" "난이도 분포"
 check_pattern "$f" "난이도 점수" "난이도 점수"
 check_count "$f" "[LMH]: [0-9]+개" 3 "난이도 L/M/H 항목"
+check_difficulty_sum "$f" "난이도 합 == 태스크 수"
 result

@@ -64,6 +64,12 @@
   - Fix: Loop 6에서 verify/SKILL.md 자동화 경로를 grep -oE로 수정 + parse-scores.sh 참조 추가
   - Prevent: 코드 수정 시 관련 SKILL.md 자동화 경로/예제도 동시 업데이트. plan 단계에서 "코드+문서" 쌍 태스크화
 
+- **validator-gap** [validation, loop]
+  - Detect: Loop 7에서 test-validators.sh가 evaluate/research/plan만 테스트. 70줄 verify validator 미검증
+  - Root Cause: "복잡한 validator = 중요한 validator"이지만 테스트 작성 비용도 높아 후순위로 밀림
+  - Fix: Loop 8에서 implement/verify validator negative 테스트 6개 추가 (16→16 PASS)
+  - Prevent: 새 validator 생성 시 test-validators.sh에 3개 시나리오(missing/valid/invalid) 동반 추가 의무
+
 - **untested-utility** [loop, validation]
   - Detect: Loop 6에서 parse-scores.sh, loop-status.sh 생성했으나 테스트 0건. Loop 7 evaluate에서 테스트 기준 정체 원인으로 식별
   - Root Cause: "유틸리티 스크립트 = 단순 도구"로 간주해 테스트 불필요하다고 판단. 그러나 bc/awk 파싱 로직은 엣지케이스 취약

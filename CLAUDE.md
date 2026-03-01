@@ -37,3 +37,4 @@ SRPI (Self-improvement Research Plan Implement) 하네스 — Claude Code 스킬
 - 다음 스테이지는 이전 스테이지의 출력을 입력으로 사용
 - `/srpi-implement`는 커밋하지 않음 — 사용자가 직접 확인 후 커밋
 - 단계 간 `/compact` 권장 — 컨텍스트 누적 방지
+- 직렬 실행만 지원 — 동시에 2개 이상 루프 실행 금지 (heritage 파일 경합 방지)

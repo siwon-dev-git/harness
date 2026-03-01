@@ -2,6 +2,11 @@
 # quest-wip.md에서 5기준 점수 추출 + 평균 계산
 set -euo pipefail
 
+STRICT=false
+if [[ "${1:-}" == "--strict" ]]; then
+  STRICT=true
+  shift
+fi
 FILE="${1:-logs/quest-wip.md}"
 
 if [[ ! -f "$FILE" ]]; then
@@ -17,6 +22,10 @@ total=0
 for c in "${CRITERIA[@]}"; do
   score=$(grep -E "## ${c}.*[0-9]+/10" "$FILE" | grep -oE '[0-9]+/10' | head -1 | cut -d/ -f1) || true
   if [[ -z "$score" ]]; then
+    if $STRICT; then
+      echo "ERROR: $c score not found" >&2
+      exit 1
+    fi
     echo "WARNING: $c score not found" >&2
     score=0
   fi
