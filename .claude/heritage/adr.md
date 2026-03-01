@@ -18,10 +18,17 @@
 ## Loop
 
 - **wip-file-state-detection** [loop]: wip 파일 존재 여부로 재개 지점 판단. missing부터 실행
-- **cleanup-after-completion** [loop]: 4단계 모두 완료 후 cleanup.sh로 wip/bak 파일 제거
+- **cleanup-after-completion** [loop]: 5단계 모두 완료 후 cleanup.sh로 wip/bak 파일 제거
 - **no-commit-policy** [loop]: implement 단계에서 커밋 금지. 사용자 직접 확인 후 커밋
 
 ## Heritage
 
 - **heritage-accumulation** [heritage]: ADR(결정) + FMEA(실패 패턴)로 경험 축적. 루프마다 갱신
 - **detect-fix-prevent** [heritage]: FMEA 항목은 탐지→수정→예방 3단계 구조
+
+## Verification
+
+- **vf-layer** [loop, heritage]: VF 단계 도입. 점수 delta + heritage 자동 업데이트로 피드백 루프 폐합
+- **scoreboard-tracking** [heritage]: scoreboard.md로 루프별 점수 영속 추적. append-only
+- **archive-before-cleanup** [loop]: cleanup 전 logs/archive/loop-NNN/에 wip 파일 보존. 기억 소실 방지
+- **difficulty-governance** [loop, governance]: 난이도 점수 + 최소 쿼터로 easy-pick 편향 방어

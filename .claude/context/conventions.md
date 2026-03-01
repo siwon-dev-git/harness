@@ -35,6 +35,7 @@ C1: [주장] ← E1: [CODE] file:line · 인용 [FACT]
 - `.claude/skills/*/SKILL.md` — 절차 무결성 검증 필요
 - `.claude/heritage/adr.md` — 항목 삭제 금지, 추가만 허용
 - `.claude/heritage/fmea.md` — 항목 삭제 금지, 추가만 허용 (졸업 시 archive로 이동)
+- `.claude/heritage/scoreboard.md` — 항목 삭제 금지, 추가만 허용
 
 ## 에러 복구 프로토콜
 
@@ -44,6 +45,13 @@ C1: [주장] ← E1: [CODE] file:line · 인용 [FACT]
 3. **롤백** — `git checkout -- <file>`로 원복
 4. **수정** — 원인 파악 후 재시도
 5. **기록** — 새 실패 패턴이면 fmea.md에 등록
+
+## 난이도 거버넌스
+
+- 태스크 3개 이상: 최소 1개는 M 또는 H
+- 난이도 점수 = (L×1 + M×2 + H×3) / 태스크수
+- < 1.3 이면 FLAG → verify에서 경고
+- FLAG 연속 2회 → 다음 루프에서 M/H 의무
 
 ## 스코프 제한
 
