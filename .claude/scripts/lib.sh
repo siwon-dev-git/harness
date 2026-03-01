@@ -45,6 +45,29 @@ check_section_order() {
   ok "section order correct"
 }
 
+check_range() {
+  # Usage: check_range <file> <grep_pattern> <min> <max> <label>
+  # Extracts all numbers matching pattern and verifies each is within [min, max]
+  local file="$1" pattern="$2" min="$3" max="$4" label="$5"
+  local nums
+  nums=$(grep -oE "$pattern" "$file" 2>/dev/null | grep -oE '[0-9]+') || true
+  if [[ -z "$nums" ]]; then
+    err "$label -- no numbers found"
+    return
+  fi
+  local out_of_range=0
+  while IFS= read -r n; do
+    if [[ "$n" -lt "$min" || "$n" -gt "$max" ]]; then
+      out_of_range=$((out_of_range + 1))
+    fi
+  done <<< "$nums"
+  if [[ "$out_of_range" -gt 0 ]]; then
+    err "$label -- $out_of_range values outside [$min, $max]"
+  else
+    ok "$label"
+  fi
+}
+
 result() {
   echo ""
   if [[ ${#ERRORS[@]} -gt 0 ]]; then
