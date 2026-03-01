@@ -47,3 +47,12 @@
   - Background: cleanup이 wip를 삭제하므로 중간 산출물 소실. archive로 감사 추적 가능
 - **difficulty-governance** [loop, governance]: 난이도 점수 + 최소 쿼터로 easy-pick 편향 방어
   - Background: Loop 1에서 L:9 M:1 H:0 (FLAG). 쉬운 태스크만 골라 점수 부풀림. 난이도 하한 필요
+
+## Performance
+
+- **automation-scripts** [performance]: 자동화 유틸리티(parse-scores.sh, loop-status.sh)를 독립 스크립트로 분리
+  - Background: SKILL.md 내 인라인 bash나 문서 수준 자동화 경로는 재사용 불가 + macOS 비호환. 독립 스크립트로 분리해야 일관된 실행 보장
+- **timing-in-validation** [performance]: result() 함수에 실행 시간(초) 출력 추가
+  - Background: 검증 체크 증가에 따른 성능 모니터링 근거 필요. 어떤 validator가 느린지 정량 추적
+- **cleanup-precondition** [performance, validation]: cleanup.sh에 5개 wip 사전 검증 추가. 불완전 상태 방어
+  - Background: Loop 5에서 아카이브 무결성 WARNING 추가했으나 삭제는 진행됨. 사전 중단이 더 안전

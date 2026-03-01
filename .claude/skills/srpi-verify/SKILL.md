@@ -68,12 +68,16 @@ Post - Pre. 미변경 기준은 delta=0.
 
 ### Pre-score 파싱
 ```bash
-grep -oP '## (코드 품질|아키텍처|테스트|보안|성능).*\((\d+)/10\)' logs/quest-wip.md
+bash .claude/scripts/parse-scores.sh logs/quest-wip.md
+```
+또는 수동:
+```bash
+grep -oE '## (코드 품질|아키텍처|테스트|보안|성능).*[0-9]+/10' logs/quest-wip.md
 ```
 
 ### 영향 영역 판별
-1. `impl-wip.md`에서 변경 파일 추출: `grep -oP '`[a-zA-Z0-9_./-]+`' logs/impl-wip.md`
-2. `plan-wip.md`에서 T#별 근거(C#) 추출: `grep -oP 'T\d+.*근거: (C\d+-E\d+)' logs/plan-wip.md`
+1. `impl-wip.md`에서 변경 파일 추출: `grep -oE '[a-zA-Z0-9_./-]+\.[a-z]+' logs/impl-wip.md | sort -u`
+2. `plan-wip.md`에서 T#별 근거(C#) 추출: `grep -oE 'C[0-9]+-E[0-9]+' logs/plan-wip.md`
 3. 파일→기준 매핑: skills/ → 코드품질/테스트, heritage/ → 보안, scripts/ → 성능
 
 ### Delta 계산

@@ -4,6 +4,7 @@ set -euo pipefail
 
 LOGS_DIR="logs"
 ERRORS=()
+_LIB_START=$(date +%s)
 
 err() { ERRORS+=("FAIL: $1"); }
 ok()  { echo "  OK: $1"; }
@@ -69,11 +70,12 @@ check_range() {
 }
 
 result() {
+  local elapsed=$(( $(date +%s) - _LIB_START ))
   echo ""
   if [[ ${#ERRORS[@]} -gt 0 ]]; then
-    echo "FAIL: ${#ERRORS[@]} errors"
+    echo "FAIL: ${#ERRORS[@]} errors (${elapsed}s)"
     printf '  %s\n' "${ERRORS[@]}"
     exit 1
   fi
-  echo "PASS"
+  echo "PASS (${elapsed}s)"
 }

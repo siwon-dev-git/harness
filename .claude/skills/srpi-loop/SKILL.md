@@ -6,12 +6,8 @@ disable-model-invocation: true
 
 ## 상태 감지
 
-아래 명령으로 각 단계의 완료 여부를 확인한다:
-
 ```bash
-for f in quest research plan impl verify; do
-  [ -f "logs/${f}-wip.md" ] && echo "${f}: exists" || echo "${f}: missing"
-done
+bash .claude/scripts/loop-status.sh
 ```
 
 missing인 단계부터 순서대로 실행: evaluate → research → plan → implement → **verify**.

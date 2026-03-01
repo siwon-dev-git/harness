@@ -11,6 +11,13 @@ if [[ -f "$SCOREBOARD" ]]; then
   LOOP_NUM=$(grep -cE '^\| [0-9]' "$SCOREBOARD" 2>/dev/null) || true
 fi
 
+# wip 5개 사전 검증 (불완전 상태에서 cleanup 방어)
+wip_count=$(ls "$LOGS_DIR"/*-wip.md 2>/dev/null | wc -l | tr -d ' ')
+if [[ "$wip_count" -lt 5 && "${1:-}" != "--force" ]]; then
+  echo "cleanup: ABORT — $wip_count/5 wip files found (expected 5). Use --force to override"
+  exit 1
+fi
+
 # archive 디렉토리 생성 및 wip 파일 복사
 if [[ "$LOOP_NUM" -gt 0 ]]; then
   ARCHIVE_DIR="$LOGS_DIR/archive/loop-$(printf '%03d' "$LOOP_NUM")"

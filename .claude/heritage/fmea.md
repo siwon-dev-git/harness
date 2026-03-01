@@ -58,6 +58,12 @@
   - Fix: Loop 4에서 check_section_order를 evaluate/validate.sh에, check_no_pattern을 verify/validate.sh에 실배치
   - Prevent: plan 단계에서 도구 생성과 도구 배치를 별도 태스크로 분리. "만들기 ≠ 쓰기"
 
+- **doc-code-mismatch** [loop, validation]
+  - Detect: Loop 4에서 코드(validate.sh)를 grep -oE로 수정했으나 문서(SKILL.md)에 grep -oP 잔존. 에이전트가 문서 패턴 복사 시 실패
+  - Root Cause: 코드 수정 태스크와 문서 수정 태스크를 분리하지 않음. "코드 고침 = 문서도 고침"이 아니었음
+  - Fix: Loop 6에서 verify/SKILL.md 자동화 경로를 grep -oE로 수정 + parse-scores.sh 참조 추가
+  - Prevent: 코드 수정 시 관련 SKILL.md 자동화 경로/예제도 동시 업데이트. plan 단계에서 "코드+문서" 쌍 태스크화
+
 ## Context
 
 - **context-exhaustion** [context, loop]
