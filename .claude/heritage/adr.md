@@ -67,3 +67,7 @@
   - Background: evaluate/validate.sh(5행 반복), parse-scores.sh(CRITERIA 배열), conventions.md에 기준명 3중 정의. 변경 시 동기화 실패 위험. 공유 정의로 단일 진실 원천(SSOT) 확보
 - **difficulty-invariant** [validation, governance]: plan/validate.sh에 L+M+H 합 == T# 태스크 수 불변식 검증 추가
   - Background: 난이도 분포 데이터가 태스크 수와 불일치해도 감지 불가. check_difficulty_sum으로 불변식 강제
+- **archive-integrity-abort** [validation, heritage]: cleanup.sh 아카이브 불완전 시 ABORT. WARNING→hard fail
+  - Background: Loop 8까지 아카이브 실패해도 wip 삭제 진행. 데이터 소실 위험. "경고만" 정책은 무결성 보장 불가
+- **verify-early-exit** [validation]: verify/validate.sh에 check_file early exit 패턴 통일. 파일 없으면 즉시 중단
+  - Background: 5개 validator 중 verify만 early exit 누락. 파일 부재 시 에러 16개 폭주. 패턴 일관성 확보

@@ -14,12 +14,14 @@ if [[ ! -f "$FILE" ]]; then
   exit 1
 fi
 
-# 5기준 점수 추출 (N/10 형식)
-declare -a CRITERIA=("코드 품질" "아키텍처" "테스트" "보안" "성능")
+# lib.sh에서 SRPI_CRITERIA 공유 배열 참조
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/lib.sh" 2>/dev/null || true
+
 declare -a SCORES=()
 total=0
 
-for c in "${CRITERIA[@]}"; do
+for c in "${SRPI_CRITERIA[@]}"; do
   score=$(grep -E "## ${c}.*[0-9]+/10" "$FILE" | grep -oE '[0-9]+/10' | head -1 | cut -d/ -f1) || true
   if [[ -z "$score" ]]; then
     if $STRICT; then

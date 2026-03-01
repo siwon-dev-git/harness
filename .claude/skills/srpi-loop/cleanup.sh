@@ -25,10 +25,11 @@ if [[ "$LOOP_NUM" -gt 0 ]]; then
   for f in "$LOGS_DIR"/*-wip.md; do
     [[ -f "$f" ]] && cp "$f" "$ARCHIVE_DIR/"
   done
-  # 아카이브 무결성 확인
+  # 아카이브 무결성 확인 (실패 시 ABORT — 데이터 무결성 우선)
   archived=$(ls "$ARCHIVE_DIR"/*-wip.md 2>/dev/null | wc -l | tr -d ' ')
   if [[ "$archived" -lt 5 ]]; then
-    echo "cleanup: WARNING — archived $archived/5 wip files (expected 5)"
+    echo "cleanup: ABORT — archived $archived/5 wip files. Archive integrity check failed."
+    exit 1
   fi
   echo "cleanup: archived to $ARCHIVE_DIR"
 fi

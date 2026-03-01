@@ -76,6 +76,12 @@
   - Fix: Loop 7에서 test-lib.sh에 parse-scores.sh(2), loop-status.sh(3) 테스트 추가 + test-validators.sh(9) 신설
   - Prevent: plan 단계에서 새 스크립트 생성 태스크마다 "테스트 추가" 동반 태스크 의무 배정. "만들기 = 테스트하기"
 
+- **validation-inconsistency** [validation]
+  - Detect: Loop 9에서 verify/validate.sh만 check_file 후 early exit 미사용. 다른 4개 validator는 `|| { result; exit; }` 패턴 사용
+  - Root Cause: validator 작성 시점이 다름. 초기 validator는 early exit 패턴 미확립
+  - Fix: Loop 9에서 verify/validate.sh에 early exit 패턴 적용. 5기준 검증도 SRPI_CRITERIA 기반으로 통일
+  - Prevent: 새 validator 작성 시 기존 패턴 템플릿 참조. check_file 후 반드시 `|| { result; exit; }` 사용
+
 ## Context
 
 - **context-exhaustion** [context, loop]

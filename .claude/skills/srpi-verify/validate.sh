@@ -5,10 +5,15 @@ echo "=== srpi-verify ==="
 f="$LOGS_DIR/verify-wip.md"
 
 # verify-wip.md 존재
-check_file "$f"
+check_file "$f" || { result; exit; }
 
 # 루프 번호 패턴
 check_pattern "$f" "^# Verification — Loop [0-9]+" "loop number in title"
+
+# 5기준 점수 테이블 검증 (verify는 테이블 형식: | 기준 | Pre | Post | Delta |)
+for c in "${SRPI_CRITERIA[@]}"; do
+  check_pattern "$f" "$c.*[0-9]+/10" "$c in score table"
+done
 
 # 점수 비교 테이블 (5기준 × Pre/Post, grep -c는 라인 수 기준)
 check_count "$f" "[0-9]+/10" 5 "score rows (N/10) >= 5"

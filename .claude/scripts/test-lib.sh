@@ -205,6 +205,106 @@ else
   FAIL_COUNT=$((FAIL_COUNT + 1))
 fi
 
+# --- check_all_criteria ---
+echo "-- check_all_criteria --"
+
+# Valid quest file with all 5 criteria
+cat > "$TMP_DIR/criteria_ok.md" <<'Q'
+## 코드 품질 (8/10)
+evidence
+## 아키텍처 (7/10)
+evidence
+## 테스트 (8/10)
+evidence
+## 보안 (6/10)
+evidence
+## 성능 (7/10)
+evidence
+Q
+assert_pass "all 5 criteria present" check_all_criteria "$TMP_DIR/criteria_ok.md"
+
+# Missing criteria
+cat > "$TMP_DIR/criteria_bad.md" <<'Q'
+## 코드 품질 (8/10)
+## 아키텍처 (7/10)
+Q
+assert_fail "missing 3 criteria" check_all_criteria "$TMP_DIR/criteria_bad.md"
+
+# --- check_difficulty_sum ---
+echo "-- check_difficulty_sum --"
+
+# Correct sum: 1+1+1 = 3 tasks
+cat > "$TMP_DIR/diff_ok.md" <<'D'
+## T1: task1
+## T2: task2
+## T3: task3
+L: 1개
+M: 1개
+H: 1개
+D
+assert_pass "sum matches (3=3)" check_difficulty_sum "$TMP_DIR/diff_ok.md" "test"
+
+# Mismatch: 2+1+0 = 3 but only 1 task
+cat > "$TMP_DIR/diff_bad.md" <<'D'
+## T1: only task
+L: 2개
+M: 1개
+H: 0개
+D
+assert_fail "sum mismatch (3!=1)" check_difficulty_sum "$TMP_DIR/diff_bad.md" "test"
+
+# Two-digit numbers: 10+5+2 = 17 tasks
+cat > "$TMP_DIR/diff_big.md" <<'D'
+## T1: a
+## T2: b
+## T3: c
+## T4: d
+## T5: e
+## T6: f
+## T7: g
+## T8: h
+## T9: i
+## T10: j
+## T11: k
+## T12: l
+## T13: m
+## T14: n
+## T15: o
+## T16: p
+## T17: q
+L: 10개
+M: 5개
+H: 2개
+D
+assert_pass "two-digit count (10+5+2=17)" check_difficulty_sum "$TMP_DIR/diff_big.md" "test"
+
+# --- parse-scores.sh --strict ---
+echo "-- parse-scores.sh --strict --"
+
+# Strict mode with missing criteria
+cat > "$TMP_DIR/strict_bad.md" <<'Q'
+## 코드 품질 (8/10)
+evidence
+## 아키텍처 (7/10)
+evidence
+Q
+if bash "$SCRIPT_DIR/parse-scores.sh" --strict "$TMP_DIR/strict_bad.md" >/dev/null 2>&1; then
+  echo "  FAIL: strict mode missing criteria (expected error)"
+  FAIL_COUNT=$((FAIL_COUNT + 1))
+else
+  echo "  PASS: strict mode missing criteria"
+  PASS_COUNT=$((PASS_COUNT + 1))
+fi
+
+# Strict mode with all criteria
+if bash "$SCRIPT_DIR/parse-scores.sh" --strict "$TMP_DIR/criteria_ok.md" >/dev/null 2>&1; then
+  echo "  PASS: strict mode all criteria"
+  PASS_COUNT=$((PASS_COUNT + 1))
+else
+  echo "  FAIL: strict mode all criteria (expected success)"
+  FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+
 # --- Summary ---
 echo ""
 echo "Results: $PASS_COUNT passed, $FAIL_COUNT failed"
