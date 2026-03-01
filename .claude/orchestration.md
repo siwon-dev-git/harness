@@ -35,3 +35,12 @@ constitution.md 수정 시도 → 무조건 REJECT.
 | Risk Low | 보호 파일 내용 추가 | `adr.md`, `fmea.md`, `scoreboard.md` | append-only 준수 확인 |
 
 Risk Medium 이상 → 사용자 승인 필요.
+
+## References
+
+- `context/conventions.md` — C#-E# 형식, 점수 기준, 난이도 거버넌스
+- `context/methodology.md` — 반증 루프, 근거 계층 (L1/L2/L3)
+- `heritage/` — ADR(결정), FMEA(실패 패턴), Scoreboard(점수 추적)
+- `scripts/lib.sh` — 검증 공통 함수 (check_*)
+- `scripts/parse-scores.sh` — Pre-score 자동 파싱
+- `scripts/loop-status.sh` — 루프 상태 감지

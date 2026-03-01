@@ -51,6 +51,11 @@ if [[ -f "$SB" ]]; then
   fi
 fi
 
+# scoreboard 점수 급락 감지 (max 2.0 drop)
+if [[ -f "$SB" ]]; then
+  check_scoreboard_delta "$SB" 2 "scoreboard avg drop <= 2.0"
+fi
+
 # fmea 행 수 무결성 (append-only 방어)
 FM=".claude/heritage/fmea.md"
 if [[ -f "$FM" ]]; then

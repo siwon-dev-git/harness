@@ -69,6 +69,38 @@ check_range() {
   fi
 }
 
+check_scoreboard_delta() {
+  # Usage: check_scoreboard_delta <scoreboard_file> <max_drop> <label>
+  # Checks that the latest scoreboard avg didn't drop more than max_drop vs previous
+  local file="$1" max_drop="$2" label="$3"
+  local rows
+  rows=$(grep -E '^\| [0-9]' "$file" 2>/dev/null) || true
+  local row_count
+  row_count=$(echo "$rows" | grep -c '.' 2>/dev/null) || true
+  if [[ "$row_count" -lt 2 ]]; then
+    ok "$label (< 2 rows, skip)"
+    return
+  fi
+  # Extract avg column (8th pipe-delimited field) from last two data rows
+  local prev_avg latest_avg
+  prev_avg=$(echo "$rows" | tail -2 | head -1 | awk -F'|' '{gsub(/ /,"",$9); print $9}') || true
+  latest_avg=$(echo "$rows" | tail -1 | awk -F'|' '{gsub(/ /,"",$9); print $9}') || true
+  if [[ -z "$prev_avg" || -z "$latest_avg" ]]; then
+    ok "$label (avg parse skip)"
+    return
+  fi
+  # Compare using bc for decimal
+  local drop
+  drop=$(echo "$prev_avg - $latest_avg" | bc 2>/dev/null) || true
+  local is_drop
+  is_drop=$(echo "$drop > $max_drop" | bc 2>/dev/null) || true
+  if [[ "$is_drop" == "1" ]]; then
+    err "$label -- avg dropped $drop (prev=$prev_avg, latest=$latest_avg, max=$max_drop)"
+  else
+    ok "$label (prev=$prev_avg, latest=$latest_avg)"
+  fi
+}
+
 result() {
   local elapsed=$(( $(date +%s) - _LIB_START ))
   echo ""

@@ -56,3 +56,10 @@
   - Background: 검증 체크 증가에 따른 성능 모니터링 근거 필요. 어떤 validator가 느린지 정량 추적
 - **cleanup-precondition** [performance, validation]: cleanup.sh에 5개 wip 사전 검증 추가. 불완전 상태 방어
   - Background: Loop 5에서 아카이브 무결성 WARNING 추가했으나 삭제는 진행됨. 사전 중단이 더 안전
+
+## Testing
+
+- **meta-testing** [validation, loop]: validator 자체를 테스트하는 test-validators.sh 도입. 의도적 불량 입력으로 FAIL 확인
+  - Background: validator가 PASS만 내면 "검증이 동작하는지" 확인 불가. negative test로 validator 신뢰도 확보. Loop 7에서 evaluate/research/plan 3개 validator × 3 시나리오 = 9개 테스트
+- **test-accompaniment** [validation]: 새 스크립트/함수 생성 시 동반 테스트 의무화. "만들기 = 테스트하기" 원칙
+  - Background: Loop 6에서 parse-scores.sh, loop-status.sh를 테스트 없이 생성. Loop 7에서 FMEA untested-utility로 식별. 도구 생성과 테스트를 분리하면 테스트 누락 100%

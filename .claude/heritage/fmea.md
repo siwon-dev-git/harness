@@ -64,6 +64,12 @@
   - Fix: Loop 6에서 verify/SKILL.md 자동화 경로를 grep -oE로 수정 + parse-scores.sh 참조 추가
   - Prevent: 코드 수정 시 관련 SKILL.md 자동화 경로/예제도 동시 업데이트. plan 단계에서 "코드+문서" 쌍 태스크화
 
+- **untested-utility** [loop, validation]
+  - Detect: Loop 6에서 parse-scores.sh, loop-status.sh 생성했으나 테스트 0건. Loop 7 evaluate에서 테스트 기준 정체 원인으로 식별
+  - Root Cause: "유틸리티 스크립트 = 단순 도구"로 간주해 테스트 불필요하다고 판단. 그러나 bc/awk 파싱 로직은 엣지케이스 취약
+  - Fix: Loop 7에서 test-lib.sh에 parse-scores.sh(2), loop-status.sh(3) 테스트 추가 + test-validators.sh(9) 신설
+  - Prevent: plan 단계에서 새 스크립트 생성 태스크마다 "테스트 추가" 동반 태스크 의무 배정. "만들기 = 테스트하기"
+
 ## Context
 
 - **context-exhaustion** [context, loop]
