@@ -16,7 +16,7 @@ fi
 
 # lib.sh에서 SRPI_CRITERIA 공유 배열 참조
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-source "$SCRIPT_DIR/lib.sh" 2>/dev/null || true
+source "$SCRIPT_DIR/lib.sh" 2>/dev/null || { echo "ERROR: lib.sh not found at $SCRIPT_DIR/lib.sh" >&2; exit 1; }
 
 # 단일 awk 패스로 모든 기준 점수 추출 → 메모리에 보관
 SCORE_DATA=$(awk -F'[(/]' '/^## .+[0-9]+\/10/{gsub(/^## /,"",$1); gsub(/ *$/,"",$1); print $1 "=" $(NF-1)+0}' "$FILE")

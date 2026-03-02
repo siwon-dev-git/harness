@@ -39,10 +39,15 @@ check_pattern "$f" "다음 루프 권고" "next loop recommendation"
 # Delta 빈 행 방어 (모든 기준에 Delta 값 존재)
 check_no_pattern "$f" "\| .+ \| [0-9]+/10 \| [0-9]+/10 \|  \|" "no empty Delta cells"
 
-# scoreboard 점수 범위 검증 (0-10)
+# scoreboard 점수 범위 검증 (0-10, 컬럼 4-8 = 5기준 점수만)
 SB=".claude/heritage/scoreboard.md"
 if [[ -f "$SB" ]]; then
-  check_range "$SB" "\| [0-9]+ \|" 0 10 "scoreboard scores in 0-10 range"
+  sb_bad=$(awk -F'|' '/^\| [0-9]/{for(i=4;i<=8;i++){v=$i;gsub(/ /,"",v);if(v+0<0||v+0>10)print v}}' "$SB" 2>/dev/null) || true
+  if [[ -z "$sb_bad" ]]; then
+    ok "scoreboard scores in 0-10 range"
+  else
+    err "scoreboard scores in 0-10 range -- out of range: $sb_bad"
+  fi
 fi
 
 # scoreboard 행 수 무결성 (append-only 방어)
@@ -59,6 +64,21 @@ fi
 # scoreboard 점수 급락 감지 (max 2.0 drop)
 if [[ -f "$SB" ]]; then
   check_scoreboard_delta "$SB" 2 "scoreboard avg drop <= 2.0"
+fi
+
+# scoreboard 컬럼 수 일관성 (헤더 vs 최신 데이터 행)
+if [[ -f "$SB" ]]; then
+  header_cols=$(head -5 "$SB" | grep -E '^\|.*Loop' | awk -F'|' '{print NF}') || true
+  latest_cols=$(grep -E '^\| [0-9]' "$SB" | tail -1 | awk -F'|' '{print NF}') || true
+  if [[ -n "$header_cols" && -n "$latest_cols" ]]; then
+    if [[ "$header_cols" -eq "$latest_cols" ]]; then
+      ok "scoreboard column count consistent ($header_cols)"
+    else
+      err "scoreboard column count mismatch (header=$header_cols, latest=$latest_cols)"
+    fi
+  else
+    ok "scoreboard column check (skip)"
+  fi
 fi
 
 # fmea 행 수 무결성 (append-only 방어)

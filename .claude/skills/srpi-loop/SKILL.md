@@ -1,7 +1,6 @@
 ---
 name: srpi-loop
 description: SRPI 5단계를 순차 실행한다.
-disable-model-invocation: true
 ---
 
 ## 상태 감지
