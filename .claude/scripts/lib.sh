@@ -85,15 +85,31 @@ check_all_criteria() {
 
 check_difficulty_sum() {
   # Usage: check_difficulty_sum <file> <label>
-  # Verifies L+M+H count == T# task count
+  # Verifies L+M+H count == countable tasks
+  # Subtask-aware: H parents with ### T#.N subtasks → count subtasks, not parent
   local file="$1" label="$2"
-  local task_count l_count m_count h_count
-  task_count=$(grep -cE '^## T[0-9]+' "$file" 2>/dev/null) || true
+  local subtask_count
+  subtask_count=$(grep -cE '^### T[0-9]+\.[0-9]+' "$file" 2>/dev/null) || true
+
+  local task_count
+  if [[ "$subtask_count" -gt 0 ]]; then
+    local parent_with_subs total_parents standalone
+    parent_with_subs=$(grep -oE '^### (T[0-9]+)\.' "$file" 2>/dev/null \
+      | grep -oE 'T[0-9]+' | sort -u | wc -l | tr -d ' ') || true
+    total_parents=$(grep -cE '^## T[0-9]+' "$file" 2>/dev/null) || true
+    standalone=$((total_parents - parent_with_subs))
+    task_count=$((standalone + subtask_count))
+  else
+    task_count=$(grep -cE '^## T[0-9]+' "$file" 2>/dev/null) || true
+  fi
+
+  local l_count m_count h_count
   l_count=$(grep -oE 'L: ?[0-9]+개' "$file" | grep -oE '[0-9]+' | head -1) || true
   m_count=$(grep -oE 'M: ?[0-9]+개' "$file" | grep -oE '[0-9]+' | head -1) || true
   h_count=$(grep -oE 'H: ?[0-9]+개' "$file" | grep -oE '[0-9]+' | head -1) || true
   l_count=${l_count:-0}; m_count=${m_count:-0}; h_count=${h_count:-0}
   local sum=$((l_count + m_count + h_count))
+
   if [[ "$task_count" -eq 0 ]]; then
     err "$label -- no tasks found"
   elif [[ "$sum" -ne "$task_count" ]]; then
@@ -101,6 +117,96 @@ check_difficulty_sum() {
   else
     ok "$label (L:$l_count M:$m_count H:$h_count = $task_count tasks)"
   fi
+}
+
+check_dependency_dag() {
+  # Usage: check_dependency_dag <file> <label>
+  # Validates: (a) all 선행 T# refs exist, (b) ≥1 root, (c) no cycles (Kahn's)
+  local file="$1" label="$2"
+
+  # 1. Extract all task IDs (## T# and ### T#.#)
+  local all_ids
+  all_ids=$(grep -E '^##+ T[0-9]+' "$file" 2>/dev/null \
+    | grep -oE 'T[0-9]+(\.[0-9]+)?' | sort -u) || true
+  if [[ -z "$all_ids" ]]; then
+    err "$label -- no tasks found"; return
+  fi
+  local total
+  total=$(echo "$all_ids" | wc -l | tr -d ' ')
+
+  # 2. Parse 선행 fields → "CHILD:PARENT" edge list
+  local edges="" has_root=0 cur=""
+  while IFS= read -r line; do
+    if [[ "$line" =~ ^##[[:space:]]+(T[0-9]+) ]]; then
+      cur="${BASH_REMATCH[1]}"
+    elif [[ -n "$cur" && "$line" == *선행* ]]; then
+      if [[ "$line" == *없음* ]]; then
+        has_root=1
+      else
+        local refs
+        refs=$(echo "$line" | grep -oE 'T[0-9]+(\.[0-9]+)?') || true
+        for r in $refs; do
+          echo "$all_ids" | grep -qxF "$r" \
+            || err "$label -- $cur references non-existent $r"
+          edges="${edges}${cur}:${r}"$'\n'
+        done
+      fi
+      cur=""
+    fi
+  done < "$file"
+
+  # 3. Root invariant
+  if [[ "$has_root" -eq 0 ]]; then
+    err "$label -- no root task (deadlock)"; return
+  fi
+
+  # 4. Kahn's algorithm — iteratively resolve tasks with satisfied deps
+  local resolved="" changed=1
+  while [[ "$changed" -eq 1 ]]; do
+    changed=0
+    while IFS= read -r t; do
+      [[ -z "$t" ]] && continue
+      echo "$resolved" | grep -qxF "$t" && continue
+      local blocked=0 deps
+      deps=$(echo "$edges" | grep "^${t}:" | cut -d: -f2) || true
+      for d in $deps; do
+        echo "$resolved" | grep -qxF "$d" || { blocked=1; break; }
+      done
+      [[ "$blocked" -eq 0 ]] && { resolved="${resolved}${t}"$'\n'; changed=1; }
+    done <<< "$all_ids"
+  done
+
+  local resolved_count
+  resolved_count=$(echo "$resolved" | grep -c '.' 2>/dev/null) || true
+  [[ "$resolved_count" -lt "$total" ]] \
+    && err "$label -- cycle detected" \
+    || ok "$label"
+}
+
+check_h_expansion() {
+  # Usage: check_h_expansion <file> <label>
+  # Validates: H tasks have >= 2 subtasks, all M or L
+  local file="$1" label="$2"
+  local violations=0
+  while IFS= read -r line; do
+    if [[ "$line" =~ ^##[[:space:]]+(T[0-9]+).*난이도:[[:space:]]*H ]]; then
+      local tid="${BASH_REMATCH[1]}"
+      local sub_count
+      sub_count=$(grep -cE "^### ${tid}\.[0-9]+" "$file" 2>/dev/null) || true
+      if [[ "$sub_count" -lt 2 ]]; then
+        err "$label -- $tid (H) needs >= 2 subtasks, found $sub_count"
+        violations=$((violations + 1))
+      fi
+      local h_subs
+      h_subs=$(grep -E "^### ${tid}\.[0-9]+" "$file" 2>/dev/null \
+        | grep -c '난이도:[[:space:]]*H') || true
+      if [[ "$h_subs" -gt 0 ]]; then
+        err "$label -- $tid has H-difficulty subtasks"
+        violations=$((violations + 1))
+      fi
+    fi
+  done < "$file"
+  [[ "$violations" -eq 0 ]] && ok "$label"
 }
 
 check_scoreboard_delta() {

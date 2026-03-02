@@ -13,4 +13,6 @@ check_pattern "$f" "난이도 분포" "난이도 분포"
 check_pattern "$f" "난이도 점수" "난이도 점수"
 check_count "$f" "[LMH]: [0-9]+개" 3 "난이도 L/M/H 항목"
 check_difficulty_sum "$f" "난이도 합 == 태스크 수"
+check_dependency_dag "$f" "의존성 DAG 유효"
+check_h_expansion "$f" "H 태스크 서브태스크 분할"
 result
