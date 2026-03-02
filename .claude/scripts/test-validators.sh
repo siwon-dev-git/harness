@@ -110,7 +110,7 @@ echo "-- srpi-plan --"
 rm -f "$TMP_DIR/logs/plan-wip.md"
 expect_fail "plan: missing file" "srpi-plan"
 
-# Valid file → PASS
+# Valid file → PASS (H task with subtasks)
 cat > "$TMP_DIR/logs/plan-wip.md" <<'WIP'
 # Plan
 ## T1: task1 — 난이도: L
@@ -118,22 +118,30 @@ cat > "$TMP_DIR/logs/plan-wip.md" <<'WIP'
 - 대상: file
 - 변경: change
 - 검증: verify
+- 선행: 없음
 ## T2: task2 — 난이도: M
 - 근거: C2-E2
 - 대상: file
 - 변경: change
 - 검증: verify
+- 선행: T1
 ## T3: task3 — 난이도: H
 - 근거: C3-E3
-- 대상: file
-- 변경: change
-- 검증: verify
-실행 순서: T1 → T2 → T3
-난이도 분포: L:1 M:1 H:1
-난이도 점수: 2.0
-L: 1개
-M: 1개
-H: 1개
+- 선행: T2
+### T3.1: sub1 — 난이도: M
+- 대상: file1
+- 변경: change1
+- 검증: verify1
+### T3.2: sub2 — 난이도: L
+- 대상: file2
+- 변경: change2
+- 검증: verify2
+실행 순서: T1 → T2 → T3.1 → T3.2
+난이도 분포
+L: 2개
+M: 2개
+H: 0개
+난이도 점수: 1.5
 WIP
 expect_pass "plan: valid file" "srpi-plan"
 
@@ -160,6 +168,48 @@ cat > "$TMP_DIR/logs/plan-wip.md" <<'WIP'
 no tasks
 WIP
 expect_fail "plan: no tasks" "srpi-plan"
+
+# Dependency cycle → FAIL
+cat > "$TMP_DIR/logs/plan-wip.md" <<'WIP'
+# Plan
+## T1: task1 — 난이도: M
+- 근거: C1-E1
+- 대상: file
+- 변경: change
+- 검증: verify
+- 선행: T2
+## T2: task2 — 난이도: M
+- 근거: C2-E2
+- 대상: file
+- 변경: change
+- 검증: verify
+- 선행: T1
+실행 순서: T1 → T2
+난이도 분포
+L: 0개
+M: 2개
+H: 0개
+난이도 점수: 2.0
+WIP
+expect_fail "plan: dependency cycle" "srpi-plan"
+
+# Dangling T# reference → FAIL
+cat > "$TMP_DIR/logs/plan-wip.md" <<'WIP'
+# Plan
+## T1: task1 — 난이도: L
+- 근거: C1-E1
+- 대상: file
+- 변경: change
+- 검증: verify
+- 선행: T99
+실행 순서: T1
+난이도 분포
+L: 1개
+M: 0개
+H: 0개
+난이도 점수: 1.0
+WIP
+expect_fail "plan: dangling T# reference" "srpi-plan"
 
 # --- srpi-implement ---
 echo "-- srpi-implement --"

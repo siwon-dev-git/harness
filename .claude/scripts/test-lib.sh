@@ -311,6 +311,197 @@ else
   FAIL_COUNT=$((FAIL_COUNT + 1))
 fi
 
+# --- check_dependency_dag ---
+echo "-- check_dependency_dag --"
+
+# Valid DAG: linear chain T1→T2→T3
+cat > "$TMP_DIR/dag_ok.md" <<'D'
+## T1: first task
+- 선행: 없음
+## T2: second task
+- 선행: T1
+## T3: third task
+- 선행: T2
+D
+assert_pass "valid DAG (linear)" check_dependency_dag "$TMP_DIR/dag_ok.md" "test"
+
+# Valid DAG: diamond (T1,T2 roots → T3)
+cat > "$TMP_DIR/dag_diamond.md" <<'D'
+## T1: task1
+- 선행: 없음
+## T2: task2
+- 선행: 없음
+## T3: task3
+- 선행: T1, T2
+D
+assert_pass "valid DAG (diamond)" check_dependency_dag "$TMP_DIR/dag_diamond.md" "test"
+
+# Invalid: reference to non-existent T99
+cat > "$TMP_DIR/dag_badref.md" <<'D'
+## T1: first task
+- 선행: 없음
+## T2: second task
+- 선행: T99
+D
+assert_fail "non-existent T# ref" check_dependency_dag "$TMP_DIR/dag_badref.md" "test"
+
+# Invalid: no root (mutual dependency)
+cat > "$TMP_DIR/dag_noroot.md" <<'D'
+## T1: first task
+- 선행: T2
+## T2: second task
+- 선행: T1
+D
+assert_fail "no root (mutual dep)" check_dependency_dag "$TMP_DIR/dag_noroot.md" "test"
+
+# Invalid: cycle T1→T2→T3→T1
+cat > "$TMP_DIR/dag_cycle.md" <<'D'
+## T1: first task
+- 선행: T3
+## T2: second task
+- 선행: T1
+## T3: third task
+- 선행: T2
+D
+assert_fail "cycle detected" check_dependency_dag "$TMP_DIR/dag_cycle.md" "test"
+
+# Edge: single task with no deps
+cat > "$TMP_DIR/dag_single.md" <<'D'
+## T1: only task
+- 선행: 없음
+D
+assert_pass "single task DAG" check_dependency_dag "$TMP_DIR/dag_single.md" "test"
+
+# --- check_h_expansion ---
+echo "-- check_h_expansion --"
+
+# H task with proper subtasks (2 M/L subs)
+cat > "$TMP_DIR/hexp_ok.md" <<'D'
+## T1: big refactor — 난이도: H
+### T1.1: sub1 — 난이도: M
+### T1.2: sub2 — 난이도: L
+## T2: small fix — 난이도: L
+D
+assert_pass "H with 2 subtasks" check_h_expansion "$TMP_DIR/hexp_ok.md" "test"
+
+# H task without subtasks → FAIL
+cat > "$TMP_DIR/hexp_nosub.md" <<'D'
+## T1: big refactor — 난이도: H
+- 대상: file
+D
+assert_fail "H without subtasks" check_h_expansion "$TMP_DIR/hexp_nosub.md" "test"
+
+# H subtask is also H → FAIL
+cat > "$TMP_DIR/hexp_hsub.md" <<'D'
+## T1: big refactor — 난이도: H
+### T1.1: sub1 — 난이도: H
+### T1.2: sub2 — 난이도: M
+D
+assert_fail "H subtask is H" check_h_expansion "$TMP_DIR/hexp_hsub.md" "test"
+
+# No H tasks at all → PASS
+cat > "$TMP_DIR/hexp_noh.md" <<'D'
+## T1: task — 난이도: M
+## T2: task — 난이도: L
+D
+assert_pass "no H tasks" check_h_expansion "$TMP_DIR/hexp_noh.md" "test"
+
+# H with only 1 subtask → FAIL
+cat > "$TMP_DIR/hexp_onesub.md" <<'D'
+## T1: big task — 난이도: H
+### T1.1: sub1 — 난이도: M
+D
+assert_fail "H with 1 subtask" check_h_expansion "$TMP_DIR/hexp_onesub.md" "test"
+
+# --- check_difficulty_sum with subtasks ---
+echo "-- check_difficulty_sum subtasks --"
+
+# H parent (2 subs: M+L) + M standalone = L:1 M:2 H:0 = 3 countable
+cat > "$TMP_DIR/diff_sub.md" <<'D'
+## T1: big task — 난이도: H
+### T1.1: sub1 — 난이도: M
+### T1.2: sub2 — 난이도: L
+## T2: small task — 난이도: M
+L: 1개
+M: 2개
+H: 0개
+D
+assert_pass "subtask counting (1L+2M=3)" check_difficulty_sum "$TMP_DIR/diff_sub.md" "test"
+
+# Mixed: H parent (2 subs) + M + L standalone = L:2 M:2 H:0 = 4 countable
+cat > "$TMP_DIR/diff_mixed.md" <<'D'
+## T1: big task — 난이도: H
+### T1.1: sub1 — 난이도: M
+### T1.2: sub2 — 난이도: L
+## T2: task — 난이도: M
+## T3: task — 난이도: L
+L: 2개
+M: 2개
+H: 0개
+D
+assert_pass "mixed subtask+standalone (2L+2M=4)" check_difficulty_sum "$TMP_DIR/diff_mixed.md" "test"
+
+# --- cleanup.sh ---
+echo "-- cleanup.sh --"
+
+CLEANUP_SCRIPT="$SCRIPT_DIR/../skills/srpi-loop/cleanup.sh"
+
+# Test 1: wip < 5 → ABORT (exit 1)
+CLEANUP_TMP=$(mktemp -d)
+mkdir -p "$CLEANUP_TMP/logs" "$CLEANUP_TMP/.claude/heritage"
+touch "$CLEANUP_TMP/logs/quest-wip.md" "$CLEANUP_TMP/logs/research-wip.md"
+if (cd "$CLEANUP_TMP" && bash "$CLEANUP_SCRIPT") >/dev/null 2>&1; then
+  echo "  FAIL: cleanup: abort on < 5 wip (expected FAIL)"
+  FAIL_COUNT=$((FAIL_COUNT + 1))
+else
+  echo "  PASS: cleanup: abort on < 5 wip"
+  PASS_COUNT=$((PASS_COUNT + 1))
+fi
+rm -rf "$CLEANUP_TMP"
+
+# Test 2: 5 wip + scoreboard → archive created + wip deleted
+CLEANUP_TMP=$(mktemp -d)
+mkdir -p "$CLEANUP_TMP/logs" "$CLEANUP_TMP/.claude/heritage"
+for w in quest research plan impl verify; do
+  echo "# $w" > "$CLEANUP_TMP/logs/${w}-wip.md"
+done
+cat > "$CLEANUP_TMP/.claude/heritage/scoreboard.md" <<'SB'
+| Loop | 평균 |
+| 1 | 7.0 |
+SB
+if (cd "$CLEANUP_TMP" && bash "$CLEANUP_SCRIPT") >/dev/null 2>&1; then
+  if [[ -d "$CLEANUP_TMP/logs/archive/loop-001" ]] && \
+     [[ ! -f "$CLEANUP_TMP/logs/quest-wip.md" ]]; then
+    echo "  PASS: cleanup: archive + delete wip"
+    PASS_COUNT=$((PASS_COUNT + 1))
+  else
+    echo "  FAIL: cleanup: archive + delete wip (post-condition failed)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+  fi
+else
+  echo "  FAIL: cleanup: archive + delete wip (script error)"
+  FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+rm -rf "$CLEANUP_TMP"
+
+# Test 3: --force with < 5 wip → proceeds anyway
+CLEANUP_TMP=$(mktemp -d)
+mkdir -p "$CLEANUP_TMP/logs" "$CLEANUP_TMP/.claude/heritage"
+echo "# quest" > "$CLEANUP_TMP/logs/quest-wip.md"
+if (cd "$CLEANUP_TMP" && bash "$CLEANUP_SCRIPT" --force) >/dev/null 2>&1; then
+  if [[ ! -f "$CLEANUP_TMP/logs/quest-wip.md" ]]; then
+    echo "  PASS: cleanup: --force override"
+    PASS_COUNT=$((PASS_COUNT + 1))
+  else
+    echo "  FAIL: cleanup: --force override (wip not deleted)"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+  fi
+else
+  echo "  FAIL: cleanup: --force override (script error)"
+  FAIL_COUNT=$((FAIL_COUNT + 1))
+fi
+rm -rf "$CLEANUP_TMP"
+
 # --- Summary ---
 echo ""
 echo "Results: $PASS_COUNT passed, $FAIL_COUNT failed"
