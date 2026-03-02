@@ -96,6 +96,21 @@
   - Fix: 헤더 행에서 컬럼명("평균")으로 인덱스 동적 추출
   - Prevent: 테이블 데이터 파싱 시 항상 헤더 기반 인덱싱 사용. 숫자 리터럴 컬럼 참조 금지
 
+- **score-plateau-at-ceiling** [scoring, loop]
+  - Detect: 전 기준 9/10에서 7/7 태스크 성공에도 delta=0. 결함 수정이 점수 레벨 내 통합에 그침
+  - Fix: 10/10 달성을 위해 기준당 잔여 미검증 영역 전수 해결 필요 (통합 테스트, heritage 형식 검증, 테스트 스위트 최적화)
+  - Prevent: 9/10 진입 후 plan 단계에서 "10/10 전환 조건"을 태스크 목표로 명시. 결함 수정보다 미검증 영역 발굴 우선
+
+- **unvalidated-task-dependency** [validation, loop]
+  - Detect: 선행 필드에 존재하지 않는 T# 또는 순환 참조 → implement 단계 조용한 실패
+  - Fix: check_dependency_dag()로 plan validate 시 기계적 검증
+  - Prevent: plan validate.sh에 DAG 검증 배치. 통과하지 않으면 implement 진입 불가
+
+- **monolithic-h-task** [loop, governance]
+  - Detect: H 태스크를 한 덩어리로 implement → 에러율 급증, 3회 재시도 초과
+  - Fix: H 태스크를 M/L 서브태스크로 분해 (T#.N notation)
+  - Prevent: check_h_expansion() 검증 + plan SKILL.md에 분해 의무 규칙
+
 ## Context
 
 - **context-exhaustion** [context, loop]

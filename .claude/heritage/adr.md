@@ -20,6 +20,12 @@
   - Background: 무한 재시도는 컨텍스트 소진. 3회 제한으로 실패를 빠르게 인정하고 FMEA에 기록
 - **evidence-based-scoring** [validation]: 모든 점수 판정에 file:line 근거 필수. 근거 없는 점수 무효
   - Background: "양호함" 같은 정성 판단은 재현 불가. 코드 위치 기반 근거만 허용
+- **dag-dependency-validation** [validation, governance]: plan T# 의존성을 기계적 DAG로 검증. 순환/미참조/루트 부재 탐지. Kahn's 알고리즘 (bash 3.2 호환)
+  - Background: Task Master AI 패턴 차용. T# 선행 필드가 텍스트 전용이면 순환 의존/교착 가능성 무방비. Kahn's 기반 cycle detection + root invariant로 방어. bash 3.2에서 declare -A 불가하여 문자열+grep 기반 구현
+- **next-task-algorithm** [loop, governance]: implement 단계 의존성 기반 실행 순서. Ready 집합 + H>M>L 우선순위
+  - Background: 기존 "실행 순서" 텍스트 의존은 에이전트 판단에 좌우됨. Ready 집합 기계적 계산으로 순서 실수 구조적 차단. 전이적 스킵으로 실패 기반 위 구현 시도 방지
+- **complexity-driven-expansion** [governance]: H 난이도 태스크 서브태스크 분해 의무화. T#.N dot notation
+  - Background: H 태스크를 한 덩어리로 implement하면 에러율 급증 + 3회 재시도 초과 빈발. M/L 서브태스크로 분해하여 단위 검증 가능. check_h_expansion으로 기계 검증
 
 ## Loop
 
