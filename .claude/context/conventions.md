@@ -35,6 +35,7 @@ C1: [주장] ← E1: [CODE] file:line · 인용 [FACT]
 - `.claude/skills/*/SKILL.md` — 절차 무결성 검증 필요
 - `.claude/heritage/adr.md` — 항목 삭제 금지, 추가만 허용
 - `.claude/heritage/fmea.md` — 항목 삭제 금지, 추가만 허용 (졸업 시 archive로 이동)
+- `.claude/heritage/fmea-graduated.md` — 졸업된 FMEA 항목 보관. 재발 시 fmea.md로 재등록
 - `.claude/heritage/scoreboard.md` — 항목 삭제 금지, 추가만 허용
 
 ## 에러 복구 프로토콜
